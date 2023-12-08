@@ -6,6 +6,9 @@ LOAD DATA from file.
 
 ##
 import os
+
+import numpy as np
+import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST, CIFAR10, ImageFolder
@@ -62,8 +65,8 @@ def load_data(opt):
         valid_ds = MNIST(root='./data', train=False, download=True, transform=transform)
         train_ds, valid_ds = get_mnist_anomaly_dataset(train_ds, valid_ds, int(opt.abnormal_class))
     elif opt.dataset in ['sixray_sd3']:
-        train_ds = SIXraySD3AnomalyDataset(data_dir="dataset/sample", imsize=opt.isize, split="train")
-        valid_ds = SIXraySD3AnomalyDataset(data_dir="dataset/sample", imsize=opt.isize, split="test")
+        train_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, imsize=opt.isize, split="train")
+        valid_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, imsize=opt.isize, split="test")
     # FOLDER
     else:
         transform = transforms.Compose([transforms.Resize(opt.isize),
@@ -75,7 +78,7 @@ def load_data(opt):
         valid_ds = ImageFolder(os.path.join(opt.dataroot, 'test'), transform)
     
     ## DATALOADER
-    train_dl = DataLoader(dataset=train_ds, batch_size=opt.batchsize, shuffle=True, drop_last=True)
-    valid_dl = DataLoader(dataset=valid_ds, batch_size=opt.batchsize, shuffle=False, drop_last=True)
+    train_dl = DataLoader(dataset=train_ds, batch_size=opt.batchsize, shuffle=True, drop_last=False)
+    valid_dl = DataLoader(dataset=valid_ds, batch_size=opt.batchsize, shuffle=True, drop_last=False)
     
     return Data(train_dl, valid_dl)

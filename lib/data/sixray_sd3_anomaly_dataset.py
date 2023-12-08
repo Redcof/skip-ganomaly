@@ -6,6 +6,8 @@ import torch.utils.data as data
 from PIL import Image
 import os
 import os.path
+
+from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
 
 
@@ -63,85 +65,27 @@ class AspectResize(torch.nn.Module):
         return image
 
 
-class SIXraySD3AnomalyDataset(data.Dataset):
+class SIXraySD3AnomalyDataset(ImageFolder):
     """
     This dataset is a combination of Sixray easy and Smiths SD3 dataset. Below is the folder structure.
     
     sixray_sd3
         - train
-            - normal
+            - 0.normal
                 - 80% jpg negative(without threat) images form SD3
         - test
-            - abnormal
+            - 1.abnormal
                 - all jpg positive(with threat) images form SIXRay
-            - normal
+            - 0.normal
                 - 20% jpg negative(without threat) images form SD3
     """
     
-    def __init__(self, data_dir, split='train',
-                 imsize=64, transform=None, target_transform=None, float_precision=32):
-        assert float_precision in (32, 64), "Required 32 or 64 but {} is given".format(float_precision)
-        assert split in ('train', 'test'), "Required 'train' or 'test' but {} is given".format(split)
-        if float_precision == 32:
-            self.dtype = torch.float32
-        else:
-            self.dtype = torch.float64
-        sixray_sd3 = pathlib.Path(data_dir)
-        normal_img_path = sixray_sd3 / split / "normal"
-        abnormal_img_path = sixray_sd3 / split / "abnormal"
-        assert os.path.exists(normal_img_path), "The path: '%s' does not exists" % normal_img_path
-        if split == "test":
-            assert os.path.exists(abnormal_img_path), "The path: '%s' does not exists" % abnormal_img_path
-        self.float_precision = float_precision
-        self.transform = transform
-        self.target_transform = target_transform
-        self.imsize = imsize
-        self.data = []
-        self.data_dir = data_dir
-        self.split = split
-        # load normal filenames
-        self.filenames = [os.path.join(normal_img_path, file) for file in os.listdir(normal_img_path)]
-        if split == "test":
-            # load abnormal filenames
-            self.filenames.extend([os.path.join(abnormal_img_path, file) for file in os.listdir(abnormal_img_path)])
-    
-    def get_img(self, img_path) -> torch.Tensor:
-        img = Image.open(img_path).convert('RGB')
-        if self.transform is not None:
-            img = self.transform(img)
-        else:
-            img = transforms.Compose([
-                AspectResize(self.imsize),
+    def __init__(self, data_dir, split='train', imsize=64, transform=None, target_transform=None):
+        if transform is None:
+            transform = transforms.Compose([
+                AspectResize(imsize),
                 transforms.ToTensor(),
                 # transforms.RandomRotation(270),
                 transforms.ColorJitter(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])(img)
-        return img.type(self.dtype)
-    
-    @staticmethod
-    def read_pascal_voc(xml_file) -> []:
-        tree = ElementTree.parse(xml_file)
-        root = tree.getroot()
-        
-        list_with_all_boxes = []
-        
-        for boxes in root.iter('object'):
-            ymin = int(boxes.find("bndbox/ymin").text)
-            xmin = int(boxes.find("bndbox/xmin").text)
-            ymax = int(boxes.find("bndbox/ymax").text)
-            xmax = int(boxes.find("bndbox/xmax").text)
-            
-            class_name = boxes.find("./name").text
-            
-            list_with_single_boxes = (xmin, ymin, xmax, ymax)
-            list_with_all_boxes.append((class_name, list_with_single_boxes))
-        
-        return list_with_all_boxes
-    
-    def __getitem__(self, index):
-        filepath = self.filenames[index]
-        img = self.get_img(filepath)
-        return img
-    
-    def __len__(self):
-        return len(self.filenames)
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        super().__init__(os.path.join(data_dir, split), transform, target_transform)
