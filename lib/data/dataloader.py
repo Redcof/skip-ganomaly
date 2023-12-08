@@ -78,7 +78,7 @@ def load_data(opt):
         valid_ds = ImageFolder(os.path.join(opt.dataroot, 'test'), transform)
     
     ## DATALOADER
-    train_dl = DataLoader(dataset=train_ds, batch_size=opt.batchsize, shuffle=True, drop_last=False)
-    valid_dl = DataLoader(dataset=valid_ds, batch_size=opt.batchsize, shuffle=True, drop_last=False)
+    train_dl = DataLoader(dataset=train_ds, batch_size=opt.batchsize, shuffle=True, drop_last=True)
+    valid_dl = DataLoader(dataset=valid_ds, batch_size=opt.batchsize, shuffle=False, drop_last=False)
     
     return Data(train_dl, valid_dl)
