@@ -41,9 +41,9 @@ scipy
 seaborn
 six
 statsmodels
-torch
-torchfile
-torchvision
+# torch
+# torchfile
+# torchvision
 tornado
 tqdm
 traitlets

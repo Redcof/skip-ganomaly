@@ -2,13 +2,11 @@
 TRAIN SKIP/GANOMALY
 
 . Example: Run the following command from the terminal.
-    run train.py                                    \
+    run inference.py                                    \
         --model <skipganomaly, ganomaly>            \
         --dataset cifar10                           \
-        --abnormal_class airplane                   \
-        --display                                   \
+        --model-path <path/to/checkpoint/dir>       \
 """
-import torch
 
 ##
 # LIBRARIES
@@ -25,7 +23,6 @@ def main():
     opt = Options().parse()
     data = load_data(opt)
     model = load_model(opt, data)
-    torch.autograd.set_detect_anomaly(True)
     model.train()
 
 
