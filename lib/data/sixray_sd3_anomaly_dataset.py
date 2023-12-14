@@ -19,8 +19,13 @@ class AspectResize(torch.nn.Module):
     
     def __init__(self, size, background=255):
         super().__init__()
-        from torchvision.transforms.transforms import _setup_size
-        self.size = tuple(_setup_size(size, error_msg="Please provide only two dimensions (h, w) for size."))
+        from typing import Iterable
+        if isinstance(size, int):
+            self.size = size, size
+        elif isinstance(size, Iterable):
+            self.size = size
+        else:
+            raise ValueError("Please provide only two dimensions (h, w) for size.")
         self.background = background
     
     @staticmethod
