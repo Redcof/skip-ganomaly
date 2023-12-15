@@ -7,6 +7,7 @@ from collections import OrderedDict
 import os
 import time
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from torch.autograd import Variable
@@ -196,6 +197,14 @@ class Ganomaly(BaseModel):
             self.an_scores = (self.an_scores - torch.min(self.an_scores)) / (torch.max(self.an_scores) - torch.min(self.an_scores))
             auc = evaluate(self.gt_labels, self.an_scores, metric=self.opt.metric)
             performance = OrderedDict([('Avg Run Time (ms/batch)', self.times), ('AUC', auc)])
+            
+            # PLOT HISTOGRAM
+            # Create data frame for scores and labels.
+            scores = {'scores': self.an_scores.cpu(), 'labels': self.gt_labels.cpu()}
+            socre_df = pd.DataFrame.from_dict(scores)
+            
+            anomaly_score_file = os.path.join(self.opt.outf, self.opt.name, "anomaly_score-epoch-%d.csv" % self.epoch)
+            socre_df.to_csv(anomaly_score_file)
 
             if self.opt.display_id > 0 and self.opt.phase == 'test':
                 counter_ratio = float(epoch_iter) / len(self.data.valid.dataset)

@@ -301,6 +301,15 @@ class BaseModel():
             auc = evaluate(self.gt_labels, self.an_scores, metric=self.opt.metric)
             performance = OrderedDict([('Avg Run Time (ms/batch)', self.times), ('AUC', auc)])
             
+            ##
+            # PLOT HISTOGRAM
+            # Create data frame for scores and labels.
+            scores = {'scores': self.an_scores.cpu(), 'labels': self.gt_labels.cpu()}
+            socre_df = pd.DataFrame.from_dict(scores)
+            
+            anomaly_score_file = os.path.join(self.opt.outf, self.opt.name, "anomaly_score-epoch-%d.csv" % self.epoch)
+            socre_df.to_csv(anomaly_score_file)
+            
             if self.opt.display_id > 0 and self.opt.phase == 'test':
                 counter_ratio = float(epoch_iter) / len(self.data.valid.dataset)
                 self.visualizer.plot_performance(self.epoch, counter_ratio, performance)

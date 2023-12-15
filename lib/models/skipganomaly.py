@@ -165,7 +165,7 @@ class Skipganomaly(BaseModel):
         print(f">> Training {self.name} on {self.opt.dataset} to detect {self.opt.abnormal_class}")
         for self.epoch in range(self.opt.iter, self.opt.niter):
             self.train_one_epoch()
-            res = self.test(epoch_idx=self.epoch)
+            res = self.test()
             if res['AUC'] > best_auc:
                 best_auc = res['AUC']
                 self.save_weights(self.epoch)
@@ -173,7 +173,7 @@ class Skipganomaly(BaseModel):
         print(">> Training model %s.[Done]" % self.name)
     
     ##
-    def test(self, epoch_idx=0):
+    def test(self):
         """ Test GANomaly model.
 
         Args:
@@ -256,7 +256,7 @@ class Skipganomaly(BaseModel):
             scores['labels'] = self.gt_labels.cpu()
             socre_df = pd.DataFrame.from_dict(scores)
             
-            anomaly_score_file = os.path.join(self.opt.outf, self.opt.name, "anomaly_score-epoch-%d.csv" % epoch_idx)
+            anomaly_score_file = os.path.join(self.opt.outf, self.opt.name, "anomaly_score-epoch-%d.csv" % self.epoch)
             socre_df.to_csv(anomaly_score_file)
             
             ##
