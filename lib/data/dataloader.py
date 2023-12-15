@@ -65,8 +65,8 @@ def load_data(opt):
         valid_ds = MNIST(root='./data', train=False, download=True, transform=transform)
         train_ds, valid_ds = get_mnist_anomaly_dataset(train_ds, valid_ds, int(opt.abnormal_class))
     elif opt.dataset in ['sixray_sd3']:
-        train_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, imsize=opt.isize, split="train")
-        valid_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, imsize=opt.isize, split="test")
+        train_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, nc=opt.nc, imsize=opt.isize, split="train")
+        valid_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, nc=opt.nc, imsize=opt.isize, split="test")
     # FOLDER
     else:
         transform = transforms.Compose([transforms.Resize(opt.isize),

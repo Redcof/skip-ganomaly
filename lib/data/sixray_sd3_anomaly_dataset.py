@@ -70,6 +70,25 @@ class AspectResize(torch.nn.Module):
         return image
 
 
+def get_transforms(imsize, nc):
+    if nc is 3:
+        transform = transforms.Compose([
+            AspectResize(imsize),
+            transforms.ToTensor(),
+            transforms.ColorJitter(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+    else:
+        transform = transforms.Compose([
+            AspectResize(imsize),
+            transforms.Grayscale(),
+            transforms.ToTensor(),
+            transforms.ColorJitter(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+    return transform
+
+
 class SIXraySD3AnomalyDataset(ImageFolder):
     """
     This dataset is a combination of Sixray easy and Smiths SD3 dataset. Below is the folder structure.
@@ -85,12 +104,7 @@ class SIXraySD3AnomalyDataset(ImageFolder):
                 - 20% jpg negative(without threat) images form SD3
     """
     
-    def __init__(self, data_dir, split='train', imsize=64, transform=None, target_transform=None):
+    def __init__(self, data_dir, split='train', nc=3, imsize=256, transform=None, target_transform=None):
         if transform is None:
-            transform = transforms.Compose([
-                AspectResize(imsize),
-                transforms.ToTensor(),
-                # transforms.RandomRotation(270),
-                transforms.ColorJitter(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            transform = get_transforms((imsize, imsize), nc=nc)
         super().__init__(os.path.join(data_dir, split), transform, target_transform)
