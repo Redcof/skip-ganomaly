@@ -73,14 +73,16 @@ class AspectResize(torch.nn.Module):
 def get_transforms(imsize, nc):
     if nc is 3:
         transform = transforms.Compose([
-            AspectResize(imsize),
+            # AspectResize(imsize),
+            transforms.Resize(imsize),
             transforms.ToTensor(),
             transforms.ColorJitter(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
     else:
         transform = transforms.Compose([
-            AspectResize(imsize),
+            # AspectResize(imsize),
+            transforms.Resize(imsize),
             transforms.Grayscale(),
             transforms.ToTensor(),
             transforms.ColorJitter(),
