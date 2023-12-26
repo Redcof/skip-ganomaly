@@ -2,7 +2,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-score_df = pd.read_csv("output/ganomaly/sixray_sd3/anomaly_score-epoch-0.csv")
+score_df = pd.read_csv("output/sixray_sd3_grey_exp_px64/anomaly_score-epoch-10.csv")
 
 plt.ion()
 # Filter normal and abnormal scores.

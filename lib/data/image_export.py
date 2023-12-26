@@ -28,6 +28,19 @@ def crawl(root, file_type=".hif"):
                 yield os.path.join(path, name)
 
 
+def center_crop(img, h, w):
+    """
+    Crop image to the provided h and w, form the center of the image.
+    where h < image.height, w < image.width
+    """
+    img_shape = img.shape
+    x = img_shape[1] // 2 - w // 2
+    y = img_shape[0] // 2 - h // 2
+    
+    crop_img = img[int(y):int(y + h), int(x):int(x + w)]
+    return crop_img
+
+
 def export(hif_path, save_path):
     """
     Read one HIF file and save each view as JPEG image in a given export directory as
@@ -60,6 +73,10 @@ def export(hif_path, save_path):
         rgb = matlum_float_to_rgb(channel_data)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         path = os.path.join(save_path, "%s-%d.jpg" % (os.path.basename(hif_path), view_idx))
+        # center-crop to remove the trays forms the images
+        if view_idx == 0:
+            crop_h, crop_w = 590, 440
+            rgb = center_crop(rgb, crop_h, crop_w)
         cv2.imwrite(path, rgb)
     return len(views_matlum)
 
@@ -111,10 +128,10 @@ def copy_files(src, files, dest, delete_at_source=False, overwrite=False):
 
 
 def move_files(src, files, dest):
-    copy_files(src, files, dest, True)
+    copy_files(src, files, dest, delete_at_source=True)
 
 
-def split(src, portion=.8):
+def split(src, portion=.8, discard=.0):
     """
     This will create `train` and `test` directory and move images to two directories while following
     the portion given.
@@ -122,6 +139,9 @@ def split(src, portion=.8):
     to the newly created `test` subdirectory and 800 images to the `train` directory.
     @param src: the path where all exported jpg images is stored.
     @param portion: The percent to split. A float value between 0 and 1
+    @param discard: discard files while splitting the dataset. this is used to reduce the dataset.
+                    A decimal number [0, 1] indicates the percent portion of the images to discard.
+                    An integer indicated the number of images to discard.
     @return: None
     """
     files = os.listdir(src)
@@ -129,6 +149,11 @@ def split(src, portion=.8):
     random.shuffle(files)  # shuffle once
     random.seed(50)
     random.shuffle(files)  # shuffle twice
+    assert discard > 0, "Invalid value {}".format(discard)
+    if discard < 1:
+        files = files[:int(len(files) * (1. - discard))]
+    else:
+        files = files[:int(discard)]
     first_half = files[:int(len(files) * portion)]
     second_half = files[int(len(files) * portion):]
     dest_train = os.path.join(src, "train")
@@ -139,6 +164,11 @@ def split(src, portion=.8):
 
 
 def copy_sixray_easy(sixray_path, anomaly_dataset_path):
+    """
+    This function will copy all SIXray images to `test/1.anomaly` directory.
+    As we have a rectified SIXray dataset where we have only 7000, positive, images, we will copy
+    the entire dataset to destination.
+    """
     sixray = pathlib.Path(sixray_path)
     src_train = sixray / "train" / "JPEGImages"
     src_test = sixray / "test" / "JPEGImages"
@@ -148,7 +178,7 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path):
     dest_test = anomaly / "test" / "abnormal"
     print("Copy Sixray data to anomaly dataset")
     copy_files(src_train, list(map(os.path.basename, train_files)), dest_test, overwrite=True)
-    copy_files(src_test, list(map(os.path.basename, train_files)), dest_test)
+    copy_files(src_test, list(map(os.path.basename, test_files)), dest_test)
 
 
 def copy_sd3_dataset(sd3_path, anomaly_dataset_path):
@@ -166,6 +196,6 @@ def copy_sd3_dataset(sd3_path, anomaly_dataset_path):
 
 if __name__ == '__main__':
     export_form_dir(sd3_hif_path, sd3_img_export_path)
-    split(sd3_img_export_path, .8)
+    split(sd3_img_export_path, .8, discard=.3)
     copy_sd3_dataset(sd3_img_export_path, sixray_sd3_dataset)
     copy_sixray_easy(sixray_path, sixray_sd3_dataset)
