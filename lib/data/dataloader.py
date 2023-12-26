@@ -67,6 +67,9 @@ def load_data(opt):
     elif opt.dataset in ['sixray_sd3']:
         train_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, nc=opt.nc, imsize=opt.isize, split="train")
         valid_ds = SIXraySD3AnomalyDataset(data_dir=opt.dataroot, nc=opt.nc, imsize=opt.isize, split="test")
+        print("Dataset Length:")
+        print("Train Size: ", len(train_ds))
+        print("Test Size: ", len(valid_ds))
     # FOLDER
     else:
         transform = transforms.Compose([transforms.Resize(opt.isize),
