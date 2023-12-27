@@ -77,7 +77,7 @@ def export(hif_path, save_path):
     return len(views_matlum)
 
 
-def export_sd3_hif_form_dir(hif_path, img_export_path):
+def export_sd3_hif_form_dir(hif_path, img_export_path, remove_before_export=False):
     """
     Read all HIF files available in a directory and save each view as JPEG image in a given export directory as
     the following formal: HIF_NAME.hif-<view_index>.jpg,
@@ -88,8 +88,12 @@ def export_sd3_hif_form_dir(hif_path, img_export_path):
         BAGGAGE_20231203_000000_12345.hif-3.jpg
     @param hif_path: The HIF path root directory
     @param img_export_path: The path to export jpg images
+    @param remove_before_export: if set to True deletes all exported files, if any.
     @return: None
     """
+    if remove_before_export:
+        print("Removing...")
+        shutil.rmtree(img_export_path)
     try:
         os.mkdir(img_export_path)
     except:
@@ -147,7 +151,7 @@ def split_exported_sd3_hif(src, portion=.8, discard=.0):
     random.shuffle(files)  # shuffle twice
     assert discard > 0, "Invalid value {}".format(discard)
     if discard < 1:
-        print("Discarding files... %.2d%% (%d files)" % (int(discard * 100), int(len(files) * (1. - discard))))
+        print("Discarding files... %.2d%% (%d files)" % (int(discard * 100), int(len(files) * discard)))
         files = files[:int(len(files) * (1. - discard))]
         files2del = files[int(len(files) * (1. - discard)):]
     else:
@@ -252,13 +256,16 @@ if __name__ == '__main__':
     sd3_hif_path = r"/data/bags_sd3"
     sixray_path = r"/data/Sixray_easy"
     sixray_sd3_anomaly_dataset = r"/data/sixray_sd3_anomaly"
+    # sd3_hif_path = r"C:\Users\dndlssardar\OneDrive - Smiths Group\Documents\Projects\annox\example_images"
+    # sixray_path = r"C:\Users\dndlssardar\OneDrive - Smiths Group\Documents\Projects\Dataset\Sixray_easy"
+    # sixray_sd3_anomaly_dataset = r"dataset/sixray_sd3_anomaly"
     sd3_img_export_path = os.path.join(sd3_hif_path, "exported")
     all_sixray_classes = ("gun", "knife", "wrench", "pliers", "scissors", "hammer")
     sixray_anomaly_classes = ("gun",)
     discard_sd3 = 30 / 100  # 30%
     
     clean_before_copy(sixray_sd3_anomaly_dataset)
-    export_sd3_hif_form_dir(sd3_hif_path, sd3_img_export_path)
+    export_sd3_hif_form_dir(sd3_hif_path, sd3_img_export_path, remove_before_export=True)
     split_exported_sd3_hif(sd3_img_export_path, .8, discard=discard_sd3)
     copy_sd3_dataset(sd3_img_export_path, sixray_sd3_anomaly_dataset)
     copy_sixray_easy(sixray_path, sixray_sd3_anomaly_dataset, sixray_anomaly_classes)
