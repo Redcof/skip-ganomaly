@@ -7,14 +7,7 @@ from typing import Iterable
 import cv2
 from hif_reader.hif_file_reader import HifFileReader
 from hif_reader.tools.matlum_rgb import matlum_float_to_rgb
-import tqdm
-
-sd3_hif_path = r"/data/bags_sd3"
-sixray_path = r"/data/Sixray_easy"
-sixray_sd3_anomaly_dataset = r"/data/sixray_sd3_anomaly"
-sd3_img_export_path = os.path.join(sd3_hif_path, "exported")
-all_sixray_classes = ("gun", "knife", "wrench", "pliers", "scissors", "hammer")
-sixray_anomaly_classes = ("gun",)
+from tqdm import tqdm
 
 
 def crawl(root, file_type=".hif"):
@@ -115,7 +108,7 @@ def copy_files(src, files, dest, delete_at_source=False, overwrite=False):
     print("Moving" if delete_at_source else "Copying", end=" ")
     print("file form '%s' -> '%s'" % (src, dest))
     try:
-        os.mkdir(dest)
+        os.makedirs(dest)
     except:
         ...
     for file in tqdm(files):
@@ -154,9 +147,13 @@ def split_exported_sd3_hif(src, portion=.8, discard=.0):
     random.shuffle(files)  # shuffle twice
     assert discard > 0, "Invalid value {}".format(discard)
     if discard < 1:
+        print("Discarding files... %.2d%% (%d files)" % (int(discard * 100), int(len(files) * (1. - discard))))
         files = files[:int(len(files) * (1. - discard))]
+        files2del = files[int(len(files) * (1. - discard)):]
     else:
+        print("Discarding files... %d" % int(discard))
         files = files[:int(discard)]
+        files2del = files[int(discard):]
     first_half = files[:int(len(files) * portion)]
     second_half = files[int(len(files) * portion):]
     dest_train = os.path.join(src, "train")
@@ -164,6 +161,10 @@ def split_exported_sd3_hif(src, portion=.8, discard=.0):
     print("Splitting exported images")
     move_files(src, first_half, dest_train)
     move_files(src, second_half, dest_test)
+    # delete unused files
+    print("Deleting discarded files...")
+    for file in tqdm(files2del):
+        if os.path.isfile(os.path.join(src, file)): os.remove(os.path.join(src, file))
 
 
 def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
@@ -175,7 +176,7 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
     """
     sixray = pathlib.Path(sixray_path)
     src_train = sixray / "train" / "JPEGImages"
-    src_test = sixray / "test" / "JPEGImages",
+    src_test = sixray / "test" / "JPEGImages"
     # destination anomaly dataset dir
     anomaly = pathlib.Path(anomaly_dataset_path)
     sixray_train_files = list(crawl(src_train, ".jpg"))
@@ -185,7 +186,6 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
     dest_test_normal = anomaly / "test" / "0.normal"  # stores normal test images
     dest_test_abnormal = anomaly / "test" / "1.abnormal"  # stores abnormal train images
     
-    print("Copy Sixray data to anomaly dataset")
     if isinstance(anomaly_classes, Iterable):
         xml_train = sixray / "train" / "Annotations"  # contains sixray train annotations xmls
         xml_test = sixray / "test" / "Annotations"  # contains sixray test annotations xmls
@@ -193,8 +193,9 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
         abnormal_train = []  # list for train images considered abnormal, will be stored in test abnormal dir.
         normal_test = []  # list for test images considered normal, will be stored in test normal dir.
         abnormal_test = []  # list for test images considered abnormal, will be stored in test abnormal dir.
+        print("Segregating SIXray anomaly and normal files...")
         # loop for sixray train files
-        for file in sixray_train_files:
+        for file in tqdm(sixray_train_files):
             xml = xml_train / os.path.basename(file).replace(".jpg", ".xml")
             with open(xml) as fp:
                 s = fp.read()
@@ -203,7 +204,7 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
                 else:
                     normal_train.append(file)
         # loop for sixray test files
-        for file in sixray_test_files:
+        for file in tqdm(sixray_test_files):
             xml = xml_test / os.path.basename(file).replace(".jpg", ".xml")
             with open(xml) as fp:
                 s = fp.read()
@@ -211,6 +212,7 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
                     abnormal_test.append(file)
                 else:
                     normal_test.append(file)
+        print("Copy Sixray data to anomaly dataset")
         # copying sixray/train/normal images to dataset/train/normal dir
         copy_files(src_train, list(map(os.path.basename, normal_train)), dest_train_normal)
         # copying sixray/train/abnormal images to dataset/test/abnormal dir
@@ -220,6 +222,7 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
         # copying sixray/train/abnormal images to dataset/test/abnormal dir
         copy_files(src_test, list(map(os.path.basename, abnormal_test)), dest_test_abnormal)
     else:
+        print("Copy Sixray data to anomaly dataset")
         # copying sixray/train images to dataset/test/abnormal dir
         copy_files(src_train, list(map(os.path.basename, sixray_train_files)), dest_test_abnormal, overwrite=True)
         # copying sixray/test images to dataset/test/abnormal dir
@@ -236,8 +239,8 @@ def copy_sd3_dataset(sd3_path, anomaly_dataset_path):
     """copy hif exported images to anomaly dataset."""
     sd3 = pathlib.Path(sd3_path)
     anomaly = pathlib.Path(anomaly_dataset_path)
-    dest_train = anomaly / "train" / "normal"
-    dest_test = anomaly / "test" / "normal"
+    dest_train = anomaly / "train" / "0.normal"
+    dest_test = anomaly / "test" / "0.normal"
     src_train = sd3 / "train"
     src_test = sd3 / "test"
     print("Copy SD3 data to anomaly dataset")
@@ -246,8 +249,17 @@ def copy_sd3_dataset(sd3_path, anomaly_dataset_path):
 
 
 if __name__ == '__main__':
+    sd3_hif_path = r"/data/bags_sd3"
+    sixray_path = r"/data/Sixray_easy"
+    sixray_sd3_anomaly_dataset = r"/data/sixray_sd3_anomaly"
+    sd3_img_export_path = os.path.join(sd3_hif_path, "exported")
+    all_sixray_classes = ("gun", "knife", "wrench", "pliers", "scissors", "hammer")
+    sixray_anomaly_classes = ("gun",)
+    discard_sd3 = 30 / 100  # 30%
+    
     clean_before_copy(sixray_sd3_anomaly_dataset)
     export_sd3_hif_form_dir(sd3_hif_path, sd3_img_export_path)
-    split_exported_sd3_hif(sd3_img_export_path, .8, discard=.3)
+    split_exported_sd3_hif(sd3_img_export_path, .8, discard=discard_sd3)
     copy_sd3_dataset(sd3_img_export_path, sixray_sd3_anomaly_dataset)
     copy_sixray_easy(sixray_path, sixray_sd3_anomaly_dataset, sixray_anomaly_classes)
+    print("Process completed.")
