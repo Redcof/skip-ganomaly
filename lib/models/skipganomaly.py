@@ -170,6 +170,8 @@ class Skipganomaly(BaseModel):
                 best_auc = res['AUC']
                 self.save_weights(self.epoch)
             self.visualizer.print_current_performance(res, best_auc)
+        # save final weight
+        self.save_weights(self.epoch)
         print(">> Training model %s.[Done]" % self.name)
     
     ##
