@@ -135,7 +135,7 @@ class Visualizer():
         self.vis.histogram(
             X=np.array(anomaly_scores),
             opts={
-                'title': self.name + 'Anomaly Score Distribution Epoch:' + epoch,
+                'title': self.name + 'Anomaly Score Distribution Epoch: %d' % epoch,
                 'legend': "Abnormal",
                 'xlabel': 'Bins',
                 'ylabel': 'Count'
@@ -145,7 +145,6 @@ class Visualizer():
         self.vis.histogram(
             X=np.array(anomaly_scores),
             opts={
-                'title': self.name + 'Anomaly Score Distribution Epoch:' + epoch,
                 'legend': "Abnormal",
                 'xlabel': 'Bins',
                 'ylabel': 'Count'
