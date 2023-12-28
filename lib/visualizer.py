@@ -10,7 +10,9 @@ import time
 from typing import Iterable
 
 import numpy as np
+import pandas as pd
 import torchvision.utils as vutils
+from pandas import DataFrame
 
 
 ##
@@ -123,34 +125,37 @@ class Visualizer():
             win=5
         )
     
-    def plot_distribution(self, epoch: int, anomaly_scores: Iterable, normal_scores: Iterable):
+    def plot_distribution(self, epoch: int, anomaly_scores_df: DataFrame):
         """ Plot performance
 
         Args:
             epoch (int): Current epoch
-            anomaly_scores (Iterable): Anomaly Score for Abnormal Data
+            anomaly_scores_df (Iterable): Anomaly Score dataframe
             normal_scores (Iterable): Anomaly Score for Normal Data
         """
         print("Printing anomaly histogram...", end="")
-        self.vis.histogram(
-            X=np.array(anomaly_scores),
-            opts={
-                'title': self.name + 'Anomaly Score Distribution Epoch: %d' % epoch,
-                'legend': "Abnormal",
-                'xlabel': 'Bins',
-                'ylabel': 'Count'
-            },
-            win=6
-        )
-        self.vis.histogram(
-            X=np.array(anomaly_scores),
-            opts={
-                'legend': "Abnormal",
-                'xlabel': 'Bins',
-                'ylabel': 'Count'
-            },
-            win=6
-        )
+        # import matplotlib
+        # ax = anomaly_scores_df.plot.hist(by="labels", bins=10)
+        # self.vis.image()
+        # self.vis.histogram(
+        #     X=np.array(anomaly_scores),
+        #     opts={
+        #         'title': self.name + 'Anomaly Score Distribution Epoch: %d' % epoch,
+        #         'legend': "Abnormal",
+        #         'xlabel': 'Bins',
+        #         'ylabel': 'Count'
+        #     },
+        #     win=6
+        # )
+        # self.vis.histogram(
+        #     X=np.array(normal_scores),
+        #     opts={
+        #         'legend': "Abnormal",
+        #         'xlabel': 'Bins',
+        #         'ylabel': 'Count'
+        #     },
+        #     win=6
+        # )
         print("Done")
     
     ##
