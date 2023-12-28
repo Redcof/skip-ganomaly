@@ -125,12 +125,12 @@ class Visualizer():
             win=5
         )
     
-    def plot_distribution(self, epoch: int, anomaly_scores_df: DataFrame):
+    def plot_distribution(self, epoch: int, anomaly_scores: DataFrame, normal_scores: DataFrame):
         """ Plot performance
 
         Args:
             epoch (int): Current epoch
-            anomaly_scores_df (Iterable): Anomaly Score dataframe
+            anomaly_scores (Iterable): Anomaly Score dataframe
             normal_scores (Iterable): Anomaly Score for Normal Data
         """
         print("Printing anomaly histogram...", end="")

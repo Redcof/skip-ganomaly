@@ -222,5 +222,6 @@ class Ganomaly(BaseModel):
                 self.visualizer.plot_performance(self.epoch, counter_ratio, performance)
                 self.visualizer.plot_distribution(self.epoch,
                                                   anomaly_scores=socre_df[socre_df['labels'] == 1]['scores'].tolist(),
-                                                  normal_scores=socre_df[socre_df['labels'] == 0]['scores'].tolist())
+                                                  normal_scores=socre_df[socre_df['labels'] == 0]['scores'].tolist()
+                                                  )
             return performance
