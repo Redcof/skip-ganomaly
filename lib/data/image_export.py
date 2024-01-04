@@ -235,8 +235,8 @@ def copy_sixray_easy(sixray_path, anomaly_dataset_path, anomaly_classes):
 
 def clean_before_copy(anomaly_dataset_path):
     """Delete the anomaly dataset directory"""
-    anomaly = pathlib.Path(anomaly_dataset_path)
-    shutil.rmtree(anomaly, ignore_errors=True)
+    dataset_path = pathlib.Path(anomaly_dataset_path)
+    shutil.rmtree(dataset_path, ignore_errors=True)
 
 
 def copy_sd3_dataset(sd3_path, anomaly_dataset_path):
@@ -265,8 +265,8 @@ if __name__ == '__main__':
     discard_sd3 = 30 / 100  # 30%
     
     clean_before_copy(sixray_sd3_anomaly_dataset)
-    export_sd3_hif_form_dir(sd3_hif_path, sd3_img_export_path, remove_before_export=True)
-    split_exported_sd3_hif(sd3_img_export_path, .8, discard=discard_sd3)
-    copy_sd3_dataset(sd3_img_export_path, sixray_sd3_anomaly_dataset)
+    # export_sd3_hif_form_dir(sd3_hif_path, sd3_img_export_path, remove_before_export=True)
+    # split_exported_sd3_hif(sd3_img_export_path, .8, discard=discard_sd3)
+    # copy_sd3_dataset(sd3_img_export_path, sixray_sd3_anomaly_dataset)
     copy_sixray_easy(sixray_path, sixray_sd3_anomaly_dataset, sixray_anomaly_classes)
     print("Process completed.")
