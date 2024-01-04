@@ -5,8 +5,6 @@ import shutil
 from typing import Iterable
 
 import cv2
-from hif_reader.hif_file_reader import HifFileReader
-from hif_reader.tools.matlum_rgb import matlum_float_to_rgb
 from tqdm import tqdm
 
 
@@ -50,6 +48,8 @@ def export(hif_path, save_path):
     @param save_path: The path to export jpg images
     @return: None
     """
+    from hif_reader.hif_file_reader import HifFileReader
+    from hif_reader.tools.matlum_rgb import matlum_float_to_rgb
     src = os.path.join(save_path)
     path = os.path.join(src, "%s-%d.jpg" % (os.path.basename(hif_path), 0))
     if os.path.exists(path):
